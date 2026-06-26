@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Old Greg's Tavern — 2D RPG</title>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=MedievalSharp&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍺</text></svg>">
+</head>
+<body>
+
+<!-- ═══════ TITLE SCREEN ═══════ -->
+<div id="title-screen" class="screen active">
+  <canvas id="title-canvas"></canvas>
+  <div class="title-content">
+    <div class="title-logo">🍺</div>
+    <h1 class="title-heading">Old Greg's Tavern</h1>
+    <p class="title-sub">A 2D AI-Powered RPG Adventure</p>
+    <div class="title-buttons">
+      <button id="btn-new-game" class="btn-primary">⚔️ New Adventure</button>
+      <button id="btn-load-game" class="btn-secondary">📂 Load Game</button>
+    </div>
+    <div class="title-footer">WASD to move · E to interact · Space to attack<br>Powered by AI · Made with 🍺 and ⚔️</div>
+  </div>
+</div>
+
+<!-- ═══════ CHARACTER CREATION ═══════ -->
+<div id="create-screen" class="screen">
+  <div class="create-container">
+    <h2 class="create-title">⚔️ Forge Your Hero</h2>
+    <div class="create-grid">
+      <div class="create-form">
+        <div class="form-group">
+          <label for="char-name">Name</label>
+          <input type="text" id="char-name" placeholder="Enter your name..." maxlength="24" value="Adventurer">
+        </div>
+        <div class="form-group">
+          <label for="char-race">Race</label>
+          <select id="char-race"><option value="">Choose a race...</option></select>
+        </div>
+        <div class="form-group">
+          <label for="char-class">Class</label>
+          <select id="char-class"><option value="">Choose a class...</option></select>
+        </div>
+        <div class="form-group">
+          <label>Ability Scores <button id="btn-reroll-stats" class="btn-sm">🎲 Reroll</button></label>
+          <div id="stat-block" class="stat-block" data-stats="{}">
+            <div class="stat-row"><span class="stat-name">STR</span><span id="stat-STR">10 (+0)</span></div>
+            <div class="stat-row"><span class="stat-name">DEX</span><span id="stat-DEX">10 (+0)</span></div>
+            <div class="stat-row"><span class="stat-name">CON</span><span id="stat-CON">10 (+0)</span></div>
+            <div class="stat-row"><span class="stat-name">INT</span><span id="stat-INT">10 (+0)</span></div>
+            <div class="stat-row"><span class="stat-name">WIS</span><span id="stat-WIS">10 (+0)</span></div>
+            <div class="stat-row"><span class="stat-name">CHA</span><span id="stat-CHA">10 (+0)</span></div>
+          </div>
+        </div>
+        <div class="form-group form-options">
+          <label class="opt-label"><input type="checkbox" id="opt-permadeath"> ☠️ Permadeath</label>
+          <label class="opt-label"><input type="checkbox" id="opt-dungeon"> 🏰 Dungeon Delve</label>
+        </div>
+        <div class="create-buttons">
+          <button id="btn-start-adventure" class="btn-primary">🎲 Begin Adventure</button>
+          <button id="btn-back-title" class="btn-secondary">← Back</button>
+        </div>
+      </div>
+      <div class="create-preview">
+        <canvas id="preview-canvas" width="200" height="240"></canvas>
+        <div id="char-preview-info" class="preview-info">
+          <div class="preview-placeholder">Choose a race & class to preview</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ GAME SCREEN ═══════ -->
+<div id="play-screen" class="screen">
+  <canvas id="game-canvas"></canvas>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div id="hud-top-left">
+      <div id="hud-portrait"></div>
+      <div id="hud-info">
+        <div id="hud-name">Hero</div>
+        <div class="hud-bar-row"><div class="hud-bar hp"><div class="hud-bar-fill" id="hp-fill"></div></div><span id="hp-text">0/0</span></div>
+        <div class="hud-bar-row"><div class="hud-bar mp"><div class="hud-bar-fill" id="mp-fill"></div></div><span id="mp-text">0/0</span></div>
+        <div class="hud-bar-row"><div class="hud-bar xp"><div class="hud-bar-fill" id="xp-fill"></div></div><span id="xp-text">Lv1</span></div>
+      </div>
+    </div>
+    <div id="hud-top-right">
+      <div id="hud-gold">💰 0</div>
+      <div id="hud-location">📍 Tavern</div>
+    </div>
+    <div id="hud-toolbar">
+      <button class="hud-btn" id="btn-hud-inventory" title="Inventory (I)">🎒</button>
+      <button class="hud-btn" id="btn-hud-equipment" title="Equipment">⚔️</button>
+      <button class="hud-btn" id="btn-hud-map" title="Map (M)">🗺️</button>
+      <button class="hud-btn" id="btn-hud-journal" title="Journal">📖</button>
+      <button class="hud-btn" id="btn-hud-quests" title="Quests (Q)">📜</button>
+      <button class="hud-btn" id="btn-hud-save" title="Save">💾</button>
+      <button class="hud-btn" id="btn-hud-sound" title="Sound">🔊</button>
+    </div>
+    <canvas id="minimap" width="150" height="150"></canvas>
+  </div>
+
+  <!-- Dialogue box -->
+  <div id="dialogue-box" class="hidden">
+    <div id="dialogue-portrait"></div>
+    <div id="dialogue-content">
+      <div id="dialogue-speaker"></div>
+      <div id="dialogue-text"></div>
+      <div id="dialogue-choices"></div>
+      <div id="dialogue-continue" class="hidden">▼ E to continue</div>
+    </div>
+  </div>
+
+  <!-- Toast notifications -->
+  <div id="toast-container"></div>
+
+  <!-- Combat HUD -->
+  <div id="combat-hud" class="hidden">
+    <div id="combat-enemy-info"></div>
+    <div id="combat-actions"></div>
+    <div id="combat-log"></div>
+  </div>
+</div>
+
+<!-- ═══════ MODAL ═══════ -->
+<div id="modal-overlay" class="hidden">
+  <div id="modal-box">
+    <button id="modal-close-btn">✕</button>
+    <h2 id="modal-title"></h2>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<!-- ═══════ SCRIPTS ═══════ -->
+<script src="js/config.js"></script>
+<script src="js/sound.js"></script>
+<script src="js/dice.js"></script>
+<script src="js/equipment.js"></script>
+<script src="js/character.js"></script>
+<script src="js/save.js"></script>
+<script src="js/npcs.js"></script>
+<script src="js/journal.js"></script>
+<script src="js/achievements.js"></script>
+<script src="js/events.js"></script>
+<script src="js/levelup.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/sprites.js"></script>
+<script src="js/tilemap.js"></script>
+<script src="js/camera.js"></script>
+<script src="js/input.js"></script>
+<script src="js/player.js"></script>
+<script src="js/entities.js"></script>
+<script src="js/world.js"></script>
+<script src="js/combat2d.js"></script>
+<script src="js/dialogue.js"></script>
+<script src="js/hud.js"></script>
+<script src="js/renderer.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

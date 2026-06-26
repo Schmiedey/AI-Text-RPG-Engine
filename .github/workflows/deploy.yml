@@ -1,0 +1,43 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inject API key
+        env:
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+        run: |
+          printf 'window.GAME_CONFIG = { apiKey: "%s" };\n' "$OPENROUTER_API_KEY" > public/js/config.js
+          echo "Config: $(wc -c < public/js/config.js) bytes written"
+          TS=$(date +%s)
+          sed -i "s|js/config.js\"|js/config.js?v=${TS}\"|g" public/index.html
+          echo "Cache-busted config.js with ?v=${TS}"
+
+      - uses: actions/configure-pages@v4
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - uses: actions/deploy-pages@v4
+        id: deployment
